@@ -53,11 +53,14 @@ This is reasonable for a personal pet care app because most tasks happen at home
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 I use design brainstorming and refactoring.
 - What kinds of prompts or questions were most helpful?
+I found it helpful to use prompts that are described well so the AI knows excatly what to do.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+It tried to tell me some tradeoffs that had no real value so I didn't accept that.
 - How did you evaluate or verify what the AI suggested?
+I tried to logically see if it was right and also use chatgpt.
 
 ---
 
@@ -68,10 +71,17 @@ I use design brainstorming and refactoring.
 - What behaviors did you test?
 - Why were these tests important?
 
+I tested three core behaviors of the scheduling system:
+1. **Sorting correctness** -- I verified that `get_sorted_agenda` returns tasks in the right order for all three modes: by priority (high before medium before low, with ties broken by due time), by time (earliest first), and by duration (shortest first). This is important because the daily agenda is the main output of the system, and if tasks appear in the wrong order, the owner could miss high-priority care.
+2. **Recurrence logic** -- I confirmed that when a recurring task is marked complete, a new task is automatically created for the next day with the same title, category, priority, and duration, and that it starts as not completed. I also verified that non-recurring tasks do not generate a follow-up. This matters because recurring tasks (like daily feeding or medication) are the most common use case, and a bug here would silently drop future care from the schedule.
+3. **Conflict detection** -- I tested that `detect_task_conflicts` correctly identifies two tasks whose time windows overlap and returns them as a conflict, and that non-overlapping tasks produce no false positives. This is important because double-booked time slots could cause an owner to miss one of the tasks entirely.
+
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
+
+I am fairly confident (4 out of 5 stars) that the scheduler works correctly for its current feature set. The tests cover the three most important algorithmic behaviors -- sorting, recurrence, and conflict detection -- and they all pass. If I had more time, I would test edge cases like: a pet with zero tasks (empty agenda), tasks with identical due times and priorities (tie-breaking stability), marking the same task complete twice, and conflict detection when one task's end time exactly equals another task's start time (boundary condition).
 
 ---
 

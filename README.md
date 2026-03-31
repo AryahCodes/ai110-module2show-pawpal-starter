@@ -50,3 +50,19 @@ PawPal+ includes an algorithmic layer that makes the scheduler more intelligent:
 - **Filtering** — Narrow down tasks by pet name, completion status (pending, completed, overdue), or category (exercise, feeding, grooming, medication, other).
 - **Recurring task automation** — When a recurring task is marked complete, the next occurrence is automatically scheduled for the following day.
 - **Conflict detection** — The system detects overlapping time windows between tasks for the same pet and displays warnings instead of silently double-booking.
+
+## Testing PawPal+
+
+Run the test suite with:
+
+```bash
+python -m pytest
+```
+
+The tests in `tests/test_pawpal.py` cover three core scheduling behaviors:
+
+- **Sorting correctness** — Verifies that the daily agenda is returned in the right order for all three sort modes (priority, time, and duration), including tie-breaking within the same priority level.
+- **Recurrence logic** — Confirms that completing a recurring task auto-creates the next day's occurrence, and that non-recurring tasks do not generate follow-ups.
+- **Conflict detection** — Checks that overlapping task time windows are flagged as conflicts, and that non-overlapping tasks produce no false positives.
+
+**Confidence Level:** 4/5 stars — the tests cover the most important algorithmic behaviors and all pass consistently.
