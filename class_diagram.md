@@ -27,7 +27,7 @@ classDiagram
         -String title
         -String category
         -String priority
-        -String due_time
+        -DateTime due_time
         -int duration
         -bool recurring
         -List recurrence_days
@@ -51,8 +51,12 @@ classDiagram
         +add_pet_to_owner(owner_id, pet)
         +schedule_task(owner_id, pet_name, task)
         +schedule_appointment(owner_id, pet_name, appointment)
+        -_collect_pending(owner_id)
         +get_daily_agenda(owner_id)
+        +get_sorted_agenda(owner_id, sort_by)
+        +get_filtered_tasks(owner_id, pet_name, status, category)
         +detect_conflicts(owner_id)
+        +detect_task_conflicts(owner_id)
     }
 
     PawPalSystem "1" --> "*" Owner : manages

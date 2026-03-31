@@ -130,6 +130,56 @@ st.divider()
 st.subheader("Daily Agenda")
 st.caption("Generate a prioritized schedule across all your pets.")
 
+# --- Always-visible: overdue alerts and conflict warnings ---
+all_tasks_flat = []
+for p in owner.pets:
+    for t in p.tasks:
+        all_tasks_flat.append((p.name, t))
+
+overdue_tasks = [(pn, t) for pn, t in all_tasks_flat if t.is_overdue()]
+pending_count = sum(1 for _, t in all_tasks_flat if not t.completed and not t.is_overdue())
+overdue_count = len(overdue_tasks)
+completed_count = sum(1 for _, t in all_tasks_flat if t.completed)
+
+if overdue_tasks:
+    for pn, t in overdue_tasks:
+        st.error(
+            f"**Overdue** — {pn}'s task *{t.title}* was due at "
+            f"{t.due_time.strftime('%I:%M %p')} ({t.category}, {t.priority} priority)"
+        )
+
+appt_conflicts = system.detect_conflicts(owner.owner_id)
+if appt_conflicts:
+    with st.expander("⚠️ Appointment–Task Conflicts", expanded=True):
+        for pn, appt, task in appt_conflicts:
+            st.warning(
+                f"**{pn}**: Appointment *{appt.title}* at "
+                f"{appt.date_time.strftime('%I:%M %p')} conflicts with task "
+                f"*{task.title}* (due {task.due_time.strftime('%I:%M %p')}, "
+                f"{task.duration} min)"
+            )
+
+task_conflicts = system.detect_task_conflicts(owner.owner_id)
+if task_conflicts:
+    with st.expander("⚠️ Task Time-Overlap Conflicts", expanded=True):
+        for pn, t1, t2 in task_conflicts:
+            st.warning(
+                f"**{pn}**: *{t1.title}* "
+                f"({t1.due_time.strftime('%I:%M %p')}–"
+                f"{(t1.due_time + timedelta(minutes=t1.duration)).strftime('%I:%M %p')}) "
+                f"overlaps with *{t2.title}* "
+                f"({t2.due_time.strftime('%I:%M %p')}–"
+                f"{(t2.due_time + timedelta(minutes=t2.duration)).strftime('%I:%M %p')})"
+            )
+
+# --- Summary metrics ---
+if all_tasks_flat:
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Pending", pending_count)
+    m2.metric("Overdue", overdue_count)
+    m3.metric("Completed", completed_count)
+
+# --- Sort & filter controls ---
 sort_labels = {
     "Priority then Time": "priority",
     "Time only": "time",
@@ -175,37 +225,19 @@ if st.button("Generate schedule"):
     if not agenda:
         st.info("No tasks match your criteria. Add pets and tasks first.")
     else:
-        st.write(f"Tasks sorted by **{sort_choice}**:")
+        st.success(f"Showing {len(agenda)} task(s) sorted by **{sort_choice}**:")
         agenda_rows = [
             {
                 "Pet": pn,
                 "Task": task.title,
                 "Category": task.category,
-                "Priority": task.priority,
+                "Priority": task.priority.capitalize(),
                 "Due": task.due_time.strftime("%I:%M %p"),
                 "Duration (min)": task.duration,
-                "Status": "Completed" if task.completed else (
-                    "Overdue" if task.is_overdue() else "Pending"
+                "Status": "✅ Completed" if task.completed else (
+                    "🔴 Overdue" if task.is_overdue() else "🟡 Pending"
                 ),
             }
             for pn, task in agenda
         ]
         st.table(agenda_rows)
-
-    # Appointment-task conflicts
-    appt_conflicts = system.detect_conflicts(owner.owner_id)
-    if appt_conflicts:
-        st.warning("Appointment conflicts detected:")
-        for pn, appt, task in appt_conflicts:
-            st.write(
-                f"- **{pn}**: appointment *{appt.title}* conflicts with task *{task.title}*"
-            )
-
-    # Task-task conflicts
-    task_conflicts = system.detect_task_conflicts(owner.owner_id)
-    if task_conflicts:
-        st.warning("Task time-overlap conflicts detected:")
-        for pn, t1, t2 in task_conflicts:
-            st.write(
-                f"- **{pn}**: *{t1.title}* overlaps with *{t2.title}*"
-            )

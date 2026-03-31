@@ -1,30 +1,21 @@
-# PawPal+ (Module 2 Project)
+# PawPal+
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+**PawPal+** is a Streamlit-based pet care planning assistant that helps pet owners organize daily care tasks, track appointments, and generate smart schedules across multiple pets.
 
-## Scenario
+## Features
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+- **Multi-sort daily agenda** — View tasks sorted by priority (high first), by time (earliest first), or by duration (shortest first for a quick-win approach).
+- **Task filtering** — Narrow down tasks by pet name, completion status (pending, completed, overdue), or category (exercise, feeding, grooming, medication, other).
+- **Recurring task automation** — When a recurring task is marked complete, the next occurrence is automatically scheduled for the following day.
+- **Conflict detection** — The system detects overlapping time windows between tasks and between appointments and tasks, displaying structured warnings instead of silently double-booking.
+- **Overdue alerts** — Tasks past their due time are surfaced with prominent error banners so nothing gets missed.
+- **Summary dashboard** — At-a-glance metrics show pending, overdue, and completed task counts at the top of the Daily Agenda.
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+## Demo
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+![UML Diagram](pic.png)
 
-## What you will build
-
-Your final app should:
-
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
-
-## Getting started
-
-### Setup
+## Setup
 
 ```bash
 python -m venv .venv
@@ -32,26 +23,27 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
+Run the app:
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
+```bash
+streamlit run app.py
+```
 
-## Smarter Scheduling
+## Architecture
 
-PawPal+ includes an algorithmic layer that makes the scheduler more intelligent:
+The system is built around five classes defined in `pawpal_system.py`:
 
-- **Flexible sorting** — View your daily agenda sorted by priority (high first), by time (earliest first), or by duration (shortest first for a quick-win approach).
-- **Filtering** — Narrow down tasks by pet name, completion status (pending, completed, overdue), or category (exercise, feeding, grooming, medication, other).
-- **Recurring task automation** — When a recurring task is marked complete, the next occurrence is automatically scheduled for the following day.
-- **Conflict detection** — The system detects overlapping time windows between tasks for the same pet and displays warnings instead of silently double-booking.
+| Class | Responsibility |
+|---|---|
+| **Owner** | Manages user info and a list of pets |
+| **Pet** | Stores pet details and holds tasks/appointments |
+| **Task** | Represents a care activity with priority, duration, due time, and recurrence |
+| **Appointment** | Represents a scheduled event (e.g. vet visit) with conflict checking |
+| **PawPalSystem** | Coordinates scheduling, sorting, filtering, and conflict detection |
 
-## Testing PawPal+
+The final UML class diagram is saved as `uml_final.png`.
+
+## Testing
 
 Run the test suite with:
 

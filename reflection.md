@@ -70,18 +70,17 @@ I tried to logically see if it was right and also use chatgpt.
 
 - What behaviors did you test?
 - Why were these tests important?
-
 I tested three core behaviors of the scheduling system:
-1. **Sorting correctness** -- I verified that `get_sorted_agenda` returns tasks in the right order for all three modes: by priority (high before medium before low, with ties broken by due time), by time (earliest first), and by duration (shortest first). This is important because the daily agenda is the main output of the system, and if tasks appear in the wrong order, the owner could miss high-priority care.
-2. **Recurrence logic** -- I confirmed that when a recurring task is marked complete, a new task is automatically created for the next day with the same title, category, priority, and duration, and that it starts as not completed. I also verified that non-recurring tasks do not generate a follow-up. This matters because recurring tasks (like daily feeding or medication) are the most common use case, and a bug here would silently drop future care from the schedule.
-3. **Conflict detection** -- I tested that `detect_task_conflicts` correctly identifies two tasks whose time windows overlap and returns them as a conflict, and that non-overlapping tasks produce no false positives. This is important because double-booked time slots could cause an owner to miss one of the tasks entirely.
+1. Sorting correctness - I verified that get_sorted_agenda returns tasks in the right order for all three modes: by priority, by time, and by duration. This is important because the daily agenda is the main output of the system, and if tasks appear in the wrong order, the owner could miss high-priority care.
+2. Recurrence logic - I confirmed that when a recurring task is marked complete, a new task is automatically created for the next day with the same title, category, priority, and duration, and that it starts as not completed. I also verified that non-recurring tasks do not generate a follow-up. This matters because recurring tasks are the most common use case, and a bug here would silently drop future care from the schedule.
+3. Conflict detection - I tested that detect_task_conflicts correctly identifies two tasks whose time windows overlap and returns them as a conflict, and that non-overlapping tasks produce no false positives. This is important because double-booked time slots could cause an owner to miss one of the tasks entirely.
 
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
 
-I am fairly confident (4 out of 5 stars) that the scheduler works correctly for its current feature set. The tests cover the three most important algorithmic behaviors -- sorting, recurrence, and conflict detection -- and they all pass. If I had more time, I would test edge cases like: a pet with zero tasks (empty agenda), tasks with identical due times and priorities (tie-breaking stability), marking the same task complete twice, and conflict detection when one task's end time exactly equals another task's start time (boundary condition).
+I am fairly confident that the scheduler works correctly for its current feature set. The tests cover the three most important algorithmic behaviors, sorting, recurrence, and conflict detection, and they all pass. If I had more time, I would test edge cases like: a pet with zero tasks, tasks with identical due times and priorities, marking the same task complete twice, and conflict detection when one task's end time exactly equals another task's start time.
 
 ---
 
@@ -90,11 +89,14 @@ I am fairly confident (4 out of 5 stars) that the scheduler works correctly for 
 **a. What went well**
 
 - What part of this project are you most satisfied with?
+I'm satisfied with the scheduling logic, like the three sort modes, filtering, and conflict detection all work together cleanly. Designing the classes with UML first made the implementation much smoother because I already knew how each piece connected.
 
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
+I would add appointment scheduling to the Streamlit UI (right now appointments only exist in the backend). I'd also add buffer time between tasks so back-to-back scheduling feels more realistic.
 
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+I learned that starting with a UML diagram saves time in the long run, even if the design changes during implementation. Having a clear class structure before coding made it easier to decide where new methods like conflict detection should live.
