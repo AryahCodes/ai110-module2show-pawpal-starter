@@ -33,12 +33,16 @@ These changes made the system more consistent and better aligned with the schedu
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+My scheduler considers three constraints: priority (high, medium, low), due time, and task duration. By default, it sorts tasks by priority first and then by due time within each priority level, so high-priority tasks always appear before medium or low ones. It also supports sorting purely by time or by shortest duration first for a "quick-win" approach. For conflict detection, it considers task duration to calculate time windows and checks whether any two tasks overlap.
 - How did you decide which constraints mattered most?
+I decided priority should rank highest because in pet care, some tasks like medication are non-negotiable and must come first regardless of timing. Due time is the secondary constraint because once you know what's most important, you need to know what to do next chronologically. Duration is a tertiary option for when an owner wants to knock out quick tasks first.
 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+My conflict detection only checks for time-window overlaps (whether two tasks' start-to-end ranges intersect). It does not check whether the owner realistically has enough buffer time between tasks -- for example, a task ending at 10:30 AM and another starting at 10:30 AM are not flagged as conflicting, even though there's zero travel or transition time between them.
 - Why is that tradeoff reasonable for this scenario?
+This is reasonable for a personal pet care app because most tasks happen at home, so transition time is minimal. Checking for exact overlap catches the real scheduling errors (double-booking) without being overly strict and flagging every back-to-back pair as a conflict, which would create too many false warnings for a simple daily planner.
 
 ---
 
@@ -47,6 +51,7 @@ These changes made the system more consistent and better aligned with the schedu
 **a. How you used AI**
 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+I use design brainstorming and refactoring.
 - What kinds of prompts or questions were most helpful?
 
 **b. Judgment and verification**

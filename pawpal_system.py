@@ -135,18 +135,72 @@ class PawPalSystem:
             if pet:
                 pet.add_appointment(appointment)
 
-    def get_daily_agenda(self, owner_id):
-        """Return all pending tasks for an owner, sorted by priority then time."""
-        priority_order = {"high": 0, "medium": 1, "low": 2}
+    def _collect_pending(self, owner_id):
+        """Gather all (pet_name, task) tuples for pending tasks under an owner."""
         owner = self.owners.get(owner_id)
         if not owner:
             return []
-        all_tasks = []
+        result = []
         for pet in owner.pets:
             for task in pet.get_pending_tasks():
-                all_tasks.append((pet.name, task))
-        all_tasks.sort(key=lambda x: (priority_order.get(x[1].priority, 3), x[1].due_time))
+                result.append((pet.name, task))
+        return result
+
+    def get_daily_agenda(self, owner_id):
+        """Return all pending tasks for an owner, sorted by priority then time."""
+        return self.get_sorted_agenda(owner_id, sort_by="priority")
+
+    def get_sorted_agenda(self, owner_id, sort_by="priority"):
+        """Return pending tasks sorted by the chosen mode.
+
+        sort_by options:
+          "priority" – high > medium > low, then by due time
+          "time"     – earliest due time first
+          "duration" – shortest duration first (quick-win order)
+        """
+        priority_order = {"high": 0, "medium": 1, "low": 2}
+        all_tasks = self._collect_pending(owner_id)
+
+        if sort_by == "time":
+            all_tasks.sort(key=lambda x: x[1].due_time)
+        elif sort_by == "duration":
+            all_tasks.sort(key=lambda x: x[1].duration)
+        else:
+            all_tasks.sort(
+                key=lambda x: (priority_order.get(x[1].priority, 3), x[1].due_time)
+            )
         return all_tasks
+
+    def get_filtered_tasks(self, owner_id, pet_name=None, status=None, category=None):
+        """Return tasks matching the given filters.
+
+        Filters (all optional, None means 'all'):
+          pet_name – restrict to a single pet
+          status   – "pending", "completed", or "overdue"
+          category – e.g. "exercise", "feeding", "grooming", "medication", "other"
+        """
+        owner = self.owners.get(owner_id)
+        if not owner:
+            return []
+
+        pets = owner.pets
+        if pet_name:
+            pet = owner.get_pet(pet_name)
+            pets = [pet] if pet else []
+
+        results = []
+        for pet in pets:
+            for task in pet.tasks:
+                if category and task.category != category:
+                    continue
+                if status == "pending" and task.completed:
+                    continue
+                if status == "completed" and not task.completed:
+                    continue
+                if status == "overdue" and not task.is_overdue():
+                    continue
+                results.append((pet.name, task))
+        return results
 
     def detect_conflicts(self, owner_id):
         """Find appointments that overlap with pending tasks for an owner."""
@@ -159,4 +213,21 @@ class PawPalSystem:
                 for task in pet.get_pending_tasks():
                     if appointment.conflicts_with(task):
                         conflicts.append((pet.name, appointment, task))
+        return conflicts
+
+    def detect_task_conflicts(self, owner_id):
+        """Find pairs of pending tasks for the same pet whose time windows overlap."""
+        owner = self.owners.get(owner_id)
+        if not owner:
+            return []
+        conflicts = []
+        for pet in owner.pets:
+            pending = pet.get_pending_tasks()
+            for i in range(len(pending)):
+                for j in range(i + 1, len(pending)):
+                    t1, t2 = pending[i], pending[j]
+                    t1_end = t1.due_time + timedelta(minutes=t1.duration)
+                    t2_end = t2.due_time + timedelta(minutes=t2.duration)
+                    if t1.due_time < t2_end and t2.due_time < t1_end:
+                        conflicts.append((pet.name, t1, t2))
         return conflicts
